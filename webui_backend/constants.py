@@ -1,0 +1,52 @@
+# Copyright 2024 Sonardyne
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+# documentation files (the “Software”), to deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+# Software.
+
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# INS CONSTANTS
+MESSAGE_SIZE = 55
+HEADER_SIZE = 10
+CRC_SIZE = 2
+FIRST_BYTE = 0XAA
+SECOND_BYTE = 0xBF
+PROTOCOL_VERSION = 0
+MESSAGE_ID = 0X0
+NUMBER_OF_PADDING_BYTES = 3
+
+# INS SCALE FACTORS
+UTC_SCALE = pow(10, -6)
+LATITUDE_SCALE = 90.0 * pow(2, -31)
+LONGITUDE_SCALE = 180 * pow(2, -31)
+DEPTH_SCALE = pow(10.0, -3)
+ALTITUDE_SCALE = pow(10.0, -2)
+ORIENTATION_SCALE = 0.0055
+VELOCITY_SCALE = pow(10.0, -3)
+ANGULAR_VELOCITY_SCALE = 0.011
+SOUND_VELOCITY_SCALE = 0.03
+TEMPERATURE_SCALE = pow(10.0, -2)
+POSITION_QUALITY_SCALE = 1.0
+HEADING_QUALITY_SCALE = 0.005
+VELOCITY_QUALITY_SCALE = pow(10.0, -3)
+
+# BITSHIFTING CONSTANTS
+BITSHIFT_1 = 1
+BITSHIFT_8 = 8
+BITSHIFT_16 = 16
+BITSHIFT_24 = 24
+BITSHIFT_32 = 32
+BITSHIFT_40 = 40
+BITSHIFT_48 = 48
+BITSHIFT_56 = 56
+BITSHIFT_64 = 64
+
+BAUDRATE_LIST = [ 50, 75, 110, 134, 150, 200, 300, 600, 1200, 1800, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800, 500000, 576000, 921600, 1000000, 1152000, 1500000, 2000000, 2500000, 3000000, 3500000, 4000000]

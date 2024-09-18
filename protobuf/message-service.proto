@@ -1,0 +1,81 @@
+// Copyright 2024 Sonardyne
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+// documentation files (the “Software”), to deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+// Software.
+
+// THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+// WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+syntax = "proto3";
+
+package SON;
+
+service MessageService{
+
+ rpc GetHNavStream(HNavRequest) returns (stream HNavResponse) {}
+ rpc SetHNavAddress(EthernetRequest) returns (EthernetResponse) {}
+ rpc SetGGAAddress(EthernetRequest) returns (EthernetResponse) {}
+ rpc GetAvailableSerialPorts(AvailableSerialRequest) returns (AvailableSerialResponse) {}
+ rpc SetGPSAddress(SerialRequest) returns (SerialResponse) {}
+}
+
+message HNavRequest{
+}
+
+message HNavResponse{
+ double utc = 1;
+ double latitude_degrees = 2;
+ double longitude_degrees = 3;
+ double depth_meters = 4;
+ double altitude_meters = 5;
+ double roll_degrees = 6;
+ double pitch_degrees = 7;
+ double heading_degrees = 8;
+ double forward_velocity_meters_per_second = 9;
+ double starboard_velocity_meters_per_second = 10;
+ double downward_velocity_meters_per_second = 11;
+ double forward_angular_rate_degrees_per_second = 12;
+ double starboard_angular_rate_degrees_per_second = 13;
+ double downward_angular_rate_degrees_per_second = 14;
+ double sound_velocity_meters_per_second = 15;
+ double temperature_degrees_celsius = 16;
+ double position_quality_meters = 17;
+ double heading_quality_degrees = 18;
+ double velocity_quality_millimeters_per_second = 19;
+ uint32 status = 20;
+}
+
+message EthernetRequest{
+    string ip_address = 1;
+    uint32 port = 2;
+    string ethernet_type = 3;
+}
+
+message EthernetResponse{
+    bool success = 1;
+}
+
+message AvailableSerialRequest{
+}
+
+message AvailableSerialResponse{
+    repeated uint32 baudrates = 1;
+    repeated string ports = 2;
+    bool success = 3;
+}
+
+message SerialRequest{
+    string port = 1;
+    uint32 baudrate = 2;
+}
+
+message SerialResponse{
+    bool success = 1;
+}
