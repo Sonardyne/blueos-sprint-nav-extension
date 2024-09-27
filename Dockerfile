@@ -79,7 +79,7 @@ RUN cd ./webui_backend && python3 -m grpc_tools.protoc -I=../protobuf --python_o
 
 EXPOSE 9091/tcp 
 
-LABEL version="1.0.0"
+LABEL version="1.0.1"
 LABEL permissions='\
           {\
             "NetworkMode": "host", \
@@ -92,7 +92,14 @@ LABEL permissions='\
               "Binds":[\
                 "/dev:/dev", \
                 "/usr/blueos/extensions/data-logger:/webui/logs", \
-              ]\
+              ],\
+              "PortBindings": {\
+                "9091/tcp": [\
+                  {\
+                    "HostPort": ""\
+                  }\
+                ]\
+              }\
             }\
           }'
 LABEL authors='[\
