@@ -79,7 +79,7 @@ RUN cd ./webui_backend && python3 -m grpc_tools.protoc -I=../protobuf --python_o
 
 EXPOSE 9091/tcp 
 
-LABEL version="1.0.1"
+LABEL version="1.0.2"
 LABEL permissions='\
           {\
             "NetworkMode": "host", \
@@ -122,7 +122,7 @@ LABEL tags='[\
         "ins",\
         "position-hold",\
         ]'
-LABEL readme='https://sonardyne.github.io/son-idl/integration/#blueos'
+LABEL readme='https://github.com/Sonardyne/blueos-sprint-nav-extension/blob/main/README.md'
 LABEL links='{\
         "website": "https://www.sonardyne.com/",\
         "support": "https://www.sonardyne.com/support-centre/"\
