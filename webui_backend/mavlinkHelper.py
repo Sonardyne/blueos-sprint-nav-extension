@@ -29,7 +29,7 @@ class MavlinkHelper():
         def __init__(self):
             self.connection = None
             self.timeSinceBoot = 0
-            self.systemProcessor = platform.processor()
+            self.systemProcessor = platform.machine()
             self.correctProcessor = False
             self.isConnected = False
 
