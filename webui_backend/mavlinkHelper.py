@@ -327,4 +327,4 @@ class MavlinkHelper():
                                 self.logger.error("Cannot decode GPS stream")
                         except:
                             self.logger.error("Cannot read GPS stream")
-                    time.sleep(0.1)
+                    time.sleep(0.01)

@@ -79,7 +79,7 @@ RUN cd ./webui_backend && python3 -m grpc_tools.protoc -I=../protobuf --python_o
 
 EXPOSE 9091/tcp 
 
-LABEL version="1.0.3"
+LABEL version="1.0.4"
 LABEL permissions='\
           {\
             "NetworkMode": "host", \
