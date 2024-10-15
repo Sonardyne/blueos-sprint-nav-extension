@@ -3,7 +3,7 @@
     "description": "An extension that uses SPRINT-Nav HNav data to provide position updates to the BlueROV. This allows both vehicle tracking and position hold.",
     "icon": "mdi-navigation-outline",
     "company": "Sonardyne International Limited",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "new_page": true,
     "webpage": "https://github.com/Sonardyne/blueos-sprint-nav-extension",
     "api": ""
