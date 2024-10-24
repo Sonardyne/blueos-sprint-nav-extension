@@ -6,7 +6,8 @@ Type=simple
 Restart=always
 RestartSec=5s
 WorkingDirectory=/go/bin
-ExecStart=/go/bin/grpcwebproxy --backend_addr=localhost:50051 --run_tls_server=false --allow_all_origins --server_bind_address localhost --server_http_debug_port 50052 --server_http_max_read_timeout=0 --server_http_max_write_timeout=0
+EnvironmentFile=/webui/ip_address.txt
+ExecStart=/go/bin/grpcwebproxy --backend_addr=localhost:50051 --run_tls_server=false --allow_all_origins --server_bind_address ${IP_ADDRESS} --server_http_debug_port 50052 --server_http_max_read_timeout=0 --server_http_max_write_timeout=0
 
 [Install]
 WantedBy=multi-user.target

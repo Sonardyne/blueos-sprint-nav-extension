@@ -13,6 +13,7 @@
 # COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+import constants
 import logging
 import math
 import platform
@@ -32,6 +33,7 @@ class MavlinkHelper():
             self.systemProcessor = platform.machine()
             self.correctProcessor = False
             self.isConnected = False
+            self.hostIpAddress = ''
 
             if "arm" in self.systemProcessor:
                 self.correctProcessor = True
@@ -49,6 +51,13 @@ class MavlinkHelper():
             logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
             logging.basicConfig(filename='/webui/logs/mavlinkHelper.log', encoding='utf-8', level=logging.INFO)
 
+            file = open("/webui/ip_address.txt")
+            for line in file:
+                if constants.IP_ADDRESS_SEARCH_STRING in line:
+                    split_items = line.split(constants.DELIMITER_EQUALS)
+                    self.hostIpAddress = split_items[1].strip()
+                    self.logger.info("Set host IP address to " + self.hostIpAddress)
+
         def __del__(self):
             # Switch GPS_TYPE back to Auto. If Mavlink conenction has been made
             if self.isConnected:
@@ -65,9 +74,11 @@ class MavlinkHelper():
         def connect(self):
             self.isConnected = False
             if self.correctProcessor:
-                self.connection = mavutil.mavlink_connection('tcp:192.168.2.2:5777')
+                self.connection = mavutil.mavlink_connection('tcp:' + self.hostIpAddress +':5777')
 
                 self.connection.wait_heartbeat()
+
+                self.logger.info("Connected to Mavlink on " + self.hostIpAddress)
 
                 self.connection.mav.param_set_send(
                     self.connection.target_system, self.connection.target_component,
