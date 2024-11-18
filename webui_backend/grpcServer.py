@@ -116,6 +116,11 @@ class MessageService(pb2_grpc.MessageServiceServicer):
         availableBaudRates = constants.BAUDRATE_LIST
         return pb2.AvailableSerialResponse(success=True, baudrates=availableBaudRates, ports=availablePorts)
 
+    def CloseConnections(self, request, context):
+        self.hnavClient.disconnect()
+        self.mavlinkHelper.disconnect()
+        return pb2.RestartResponse(success=True)
+
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     pb2_grpc.add_MessageServiceServicer_to_server(MessageService(), server)

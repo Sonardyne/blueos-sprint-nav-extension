@@ -47,6 +47,7 @@ class MavlinkHelper():
             self.ggaPort= 0
             self.gpsSerial = None
             self.ggaClient = None
+            self.gpsConnected = False
             self.logger = logging.getLogger(__name__)
             logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
             logging.basicConfig(filename='/webui/logs/mavlinkHelper.log', encoding='utf-8', level=logging.INFO)
@@ -215,6 +216,12 @@ class MavlinkHelper():
                     mavutil.mavlink.MAV_PARAM_TYPE_UINT8
                 )
 
+        def disconnect(self):
+            if(self.isConnected):
+                self.connection.close()
+
+            if (self.gpsConnected):
+                self.gpsSerial.close()
 
         def sendPositionUpdate(self, hnavData):
 
@@ -288,8 +295,10 @@ class MavlinkHelper():
             try:
                 self.gpsSerial = serial.Serial(self.gpsSerialPort, self.gpsBaudRate, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=1)
                 success = True
+                self.gpsConnected = True
             except:
                 success = False
+                self.gpsConnected = False
             
             return success
 
@@ -320,7 +329,7 @@ class MavlinkHelper():
         def updateGPS(self):
             if self.correctProcessor:            
 
-                while True:
+                while self.gpsConnected:
                     if self.depth <= 1:
                         try:
                             ubr = UBXReader(self.gpsSerial, protfilter=NMEA_PROTOCOL)

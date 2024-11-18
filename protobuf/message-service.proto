@@ -24,6 +24,7 @@ service MessageService{
  rpc SetGGAAddress(EthernetRequest) returns (EthernetResponse) {}
  rpc GetAvailableSerialPorts(AvailableSerialRequest) returns (AvailableSerialResponse) {}
  rpc SetGPSAddress(SerialRequest) returns (SerialResponse) {}
+ rpc CloseConnections(RestartRequest) returns (RestartResponse) {}
 }
 
 message HNavRequest{
@@ -77,5 +78,12 @@ message SerialRequest{
 }
 
 message SerialResponse{
+    bool success = 1;
+}
+
+message RestartRequest{
+}
+
+message RestartResponse{
     bool success = 1;
 }

@@ -29,6 +29,7 @@ class HNavClient():
         self.decodeThread = threading.Thread(target=self.hnavDecode.decodeBytes, args=())
         self.decodeThread.start()
         self.client = None
+        self.connected = False
         self.exitEvent = threading.Event()
         self.logger = logging.getLogger(__name__)
         logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
@@ -59,15 +60,21 @@ class HNavClient():
                 self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.client.connect((self.ipAddress, self.port))
             success = True
+            self.connected = True
         except:
             success = False
 
         return success
 
+    def disconnect(self):
+        if (self.connected):
+            self.client.close()
+            self.connected = False
+
     def stream(self):
         self.exitEvent = threading.Event()
 
-        while True:
+        while self.connected:
             if (self.exitEvent.is_set()):
                 break
 
