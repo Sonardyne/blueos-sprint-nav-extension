@@ -1,4 +1,4 @@
-pymavlink==2.4.41
+pymavlink==2.4.42
 grpcio==1.63.0
 grpcio-tools==1.63.0
 pyserial==3.5

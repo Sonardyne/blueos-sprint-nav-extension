@@ -64,6 +64,8 @@ class MessageService(pb2_grpc.MessageServiceServicer):
                     self.previousMessage = self.currentMessage
                     
                     yield self.currentMessage
+                else:
+                    time.sleep(0.1)
         except GeneratorExit:
             self.logger.error("Client disconnected while stream is active")
         finally:

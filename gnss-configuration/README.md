@@ -24,14 +24,14 @@ To aid positioning, the SPRINT-Nav accepts a GPGGA and GPZDA input. A U-blox GNS
 
 ![Main Talker ID](images/u-center_main_talker_id.png)
 
-#### Saving the New Configuration 
-Now that the GNSS receiver has been configured, the configuration needs to be saved to allow the settings to persist between power cycles. To access the *CFG (Configuration)* tab, go to *View* > *Configuration View* > *CFG (Configuration)*. The user must select *Save current configuration* and highlight all the devices, as seen below. Once this is the done, the user will need to click on the *Send* button, along the the bottom panel of the view. This will now write the configuration to the GNSS receiver.
-
-![Save GNSS Configuration](images/u-center_save_configuration.png)
-
 ### Disable Unnecessary Messages 
 The following section shows how to disable messages that are not GPGGA or GPZDA. This will stop the extension from getting flooded with traffic that is not required. It is advised that these steps are followed to allow minimum traffic into the extension and to stop blocking due to this traffic and therefore maintaining a realtime stream of GNSS messages.
 
 The user must go to *View* > *Message Configuration* and right-click on every message type that is not *GGA*, *ZDA* or *UBX* and click *Disable Message* or *Disable Child Message* depending on what level the user is clicking.  
 
 ![Disbale Unwanted Messages](images/u-center_disbale_messages.png)
+
+#### Saving the New Configuration 
+Now that the GNSS receiver has been configured and the correct messages have been disabled, the configuration needs to be saved to allow the settings to persist between power cycles. To access the *CFG (Configuration)* tab, go to *View* > *Configuration View* > *CFG (Configuration)*. The user must select *Save current configuration* and highlight all the devices, as seen below. Once this is the done, the user will need to click on the *Send* button, along the the bottom panel of the view. This will now write the configuration to the GNSS receiver.
+
+![Save GNSS Configuration](images/u-center_save_configuration.png)

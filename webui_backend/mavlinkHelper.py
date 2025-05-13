@@ -23,6 +23,7 @@ import serial
 import socket
 import threading
 import time
+from datetime import datetime, timezone
 
 import message_service_pb2 as pb2
 
@@ -48,6 +49,9 @@ class MavlinkHelper():
             self.gpsSerial = None
             self.ggaClient = None
             self.gpsConnected = False
+            self.ggaClientConnected = False
+            self.exitGNSSEvent = threading.Event()
+            self.gpsEpoch = datetime(1980, 1, 6, tzinfo=timezone.utc) # 06/01/1980 GPS epoch
             self.logger = logging.getLogger(__name__)
             logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
             logging.basicConfig(filename='/webui/logs/mavlinkHelper.log', encoding='utf-8', level=logging.INFO)
@@ -116,7 +120,6 @@ class MavlinkHelper():
                     mavutil.mavlink.MAV_PARAM_TYPE_UINT8
                 )
 
-                # Set Kalman Filter 3 to have External Nav as the source
                 self.connection.mav.param_set_send(
                     self.connection.target_system, self.connection.target_component,
                     b'EK3_ENABLE',
@@ -141,14 +144,14 @@ class MavlinkHelper():
                 self.connection.mav.param_set_send(
                     self.connection.target_system, self.connection.target_component,
                     b'EK3_SRC1_POSXY',
-                    6,
+                    3,
                     mavutil.mavlink.MAV_PARAM_TYPE_UINT8
                 )
 
                 self.connection.mav.param_set_send(
                     self.connection.target_system, self.connection.target_component,
                     b'EK3_SRC1_VELXY',
-                    6,
+                    3,
                     mavutil.mavlink.MAV_PARAM_TYPE_UINT8
                 )
 
@@ -216,6 +219,22 @@ class MavlinkHelper():
                     mavutil.mavlink.MAV_PARAM_TYPE_UINT8
                 )
 
+                # Set yaw source preference to GPS, in this case the SPRINT-Nav
+                self.connection.mav.param_set_send(
+                    self.connection.target_system, self.connection.target_component,
+                    b'EK3_SRC1_YAW',
+                    2,
+                    mavutil.mavlink.MAV_PARAM_TYPE_UINT8
+                )
+
+                self.connection.mav.param_set_send(
+                    self.connection.target_system, self.connection.target_component,
+                    b'ARHS_YAW_P',
+                    0.4,
+                    mavutil.mavlink.MAV_PARAM_EXT_TYPE_REAL64
+                )
+
+
         def disconnect(self):
             if(self.isConnected):
                 self.connection.close()
@@ -223,12 +242,25 @@ class MavlinkHelper():
             if (self.gpsConnected):
                 self.gpsSerial.close()
 
+            if (self.ggaClientConnected):
+                self.ggaClient.close()
+
         def sendPositionUpdate(self, hnavData):
 
             if self.correctProcessor and self.isConnected:
                 self.depth = hnavData.depth_meters
 
                 try:
+                    yaw = hnavData.heading_degrees * 1E2
+
+                    if (abs(yaw) < 1E2):
+                        # 36000 must be used for North. 0 is not an available measurement value. 
+                        # It is used to indicate that the yaw measurement is not to be used
+                        yaw = 360 * 1E2
+
+                    secondsSinceEpoch = hnavData.utc - self.gpsEpoch.timestamp()
+                    gpsWeek = math.floor(secondsSinceEpoch / constants.WEEK_SECONDS)
+                    msFromStartOfWeek = int((secondsSinceEpoch % constants.WEEK_SECONDS) * 1000)
 
                     self.connection.mav.gps_input_send(
                             int(hnavData.utc * 1E6),  # Timestamp since epoch in microseonds
@@ -241,9 +273,9 @@ class MavlinkHelper():
                             mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_VEL_VERT | 
                             mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_SPEED_ACCURACY |
                             mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_HORIZONTAL_ACCURACY |
-                            mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_VERTICAL_ACCURACY ),
-                            0,  # GPS time (milliseconds from start of GPS week)
-                            0,  # GPS week number
+                            mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_VERTICAL_ACCURACY),
+                            msFromStartOfWeek,  # GPS time (milliseconds from start of GPS week)
+                            gpsWeek,  # GPS week number
                             3,  # 3-D Fix
                             int(hnavData.latitude_degrees * 1e7),  # Latitude, in degrees * 1E7
                             int(hnavData.longitude_degrees * 1e7),  # Longitude, in degrees * 1E7
@@ -256,11 +288,11 @@ class MavlinkHelper():
                             65535,  # GPS speed accuracy in m/s. Need to convert from mm/s. Ignored
                             65535,  # GPS horizontal accuracy in m. Ignored
                             0,  # GPS vertical accuracy in m
-                            1   # Number of satellites visible
+                            12,   # Number of satellites visible
+                            int(yaw) # Yaw, in degrees * 1E2
                         )
                 except:
                     self.logger.error("Cannot send GPS Input message to ROV")
-
 
         def sendPositionDeltaUpdate(self, currentHnavData, previousHnavData):
 
@@ -293,7 +325,7 @@ class MavlinkHelper():
             success = False
 
             try:
-                self.gpsSerial = serial.Serial(self.gpsSerialPort, self.gpsBaudRate, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=1)
+                self.gpsSerial = serial.Serial(self.gpsSerialPort, self.gpsBaudRate, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=0.1)
                 success = True
                 self.gpsConnected = True
             except:
@@ -302,19 +334,25 @@ class MavlinkHelper():
             
             return success
 
-
         def setGGA(self, address, port):
             self.ggaAddress = address
             self.ggaPort = port
+
+            if (self.ggaClientConnected):
+                self.ggaClient.close()
+
             self.ggaClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             success = False
+            self.exitGNSSEvent.set()
 
             try:
                 self.ggaClient.connect((self.ggaAddress, self.ggaPort))
+                self.ggaClientConnected = True
                 self.restartGPS()
                 success = True
             except:
                 success = False
+                self.ggaClientConnected = False
             
             return success
 
@@ -324,26 +362,24 @@ class MavlinkHelper():
         def restartGPS(self):
             if(self.updateGPSThread.is_alive()):
                 self.updateGPSThread.join()
+
+            self.updateGPSThread = threading.Thread(target=self.updateGPS, args=())
             self.startGPS()
 
         def updateGPS(self):
             if self.correctProcessor:            
+                self.exitGNSSEvent = threading.Event()
 
-                while self.gpsConnected:
-                    if self.depth <= 1:
-                        try:
-                            ubr = UBXReader(self.gpsSerial, protfilter=NMEA_PROTOCOL)
-                            raw_data, parsed_data = ubr.read()
+                while (not self.exitGNSSEvent.is_set()):
+                    try:
+                        ubr = UBXReader(self.gpsSerial, False, protfilter=NMEA_PROTOCOL)
+                        raw_data, parsed_data = ubr.read()
 
-                            if parsed_data is not None:
-                                line = raw_data.decode()
-                                if line.startswith("$GPGGA") and parsed_data.numSV >= 5:
-                                    self.ggaClient.sendall(raw_data)
-                                elif line.startswith("$GPZDA"):
-                                    self.ggaClient.sendall(raw_data)
-                                else:
-                                    self.logger.error("No valid GPS input stream detected")
-                            else:
-                                self.logger.error("Cannot decode GPS stream")
-                        except:
-                            self.logger.error("Cannot read GPS stream")
+                        if parsed_data is not None:
+                            line = raw_data.decode()
+                            if line.startswith("$GPGGA") and parsed_data.numSV >= 5:
+                                self.ggaClient.sendall(raw_data)
+                            if line.startswith("$GPZDA"):
+                                self.ggaClient.sendall(raw_data)
+                    except:
+                        self.logger.error("Cannot read GPS stream")
