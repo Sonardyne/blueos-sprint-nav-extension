@@ -79,7 +79,7 @@ RUN cd ./webui_backend && python3 -m grpc_tools.protoc -I=../protobuf --python_o
 
 EXPOSE 9091/tcp 
 
-LABEL version="1.0.8"
+LABEL version="1.0.9"
 LABEL permissions='\
           {\
             "NetworkMode": "host", \
@@ -135,7 +135,9 @@ FROM build-blueos-docker-image AS run-unit-tests
 
 RUN python3 -m pip install pytest
 
-RUN cd /webui/webui_backend/tests/ && pytest test-hnavDecode.py --junitxml=unit_test_report.xml
+RUN echo "127.0.0.1" > /webui/ip_address.txt
+
+RUN cd /webui/webui_backend/tests/ && pytest test-*.py --junitxml=unit_test_report.xml
 
 # Create a target for exporting the unit tests. Used for CI/CD
 FROM scratch AS export-tests

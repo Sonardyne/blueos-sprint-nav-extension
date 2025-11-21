@@ -60,7 +60,7 @@ class MessageService(pb2_grpc.MessageServiceServicer):
             while True:
                 if (self.currentMessage != self.previousMessage):    
                     self.mavlinkHelper.sendPositionUpdate(self.currentMessage)
-                    self.mavlinkHelper.sendPositionDeltaUpdate(self.currentMessage, self.previousMessage)
+                    self.mavlinkHelper.sendVisionSpeedUpdate(self.currentMessage, self.previousMessage)
                     self.previousMessage = self.currentMessage
                     
                     yield self.currentMessage

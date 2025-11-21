@@ -158,7 +158,7 @@ class MavlinkHelper():
                 self.connection.mav.param_set_send(
                     self.connection.target_system, self.connection.target_component,
                     b'EK3_SRC1_POSZ',
-                    1,
+                    3,
                     mavutil.mavlink.MAV_PARAM_TYPE_UINT8
                 )
 
@@ -234,6 +234,33 @@ class MavlinkHelper():
                     mavutil.mavlink.MAV_PARAM_EXT_TYPE_REAL64
                 )
 
+                self.connection.mav.param_set_send(
+                    self.connection.target_system, self.connection.target_component,
+                    b'EK3_GPS_CHECK',
+                    1,
+                    mavutil.mavlink.MAV_PARAM_TYPE_UINT8
+                )
+
+                self.connection.mav.param_set_send(
+                    self.connection.target_system, self.connection.target_component,
+                    b'COMPASS_ENABLE',
+                    0,
+                    mavutil.mavlink.MAV_PARAM_TYPE_UINT8
+                )
+
+                self.connection.mav.param_set_send(
+                    self.connection.target_system, self.connection.target_component,
+                    b'AHRS_GPS_GAIN',
+                    1.0,
+                    mavutil.mavlink.MAV_PARAM_EXT_TYPE_REAL64
+                )
+
+                self.connection.mav.param_set_send(
+                    self.connection.target_system, self.connection.target_component,
+                    b'AHRS_GPS_USE',
+                    2,
+                    mavutil.mavlink.MAV_PARAM_TYPE_UINT8
+                )
 
         def disconnect(self):
             if(self.isConnected):
@@ -266,8 +293,7 @@ class MavlinkHelper():
                             int(hnavData.utc * 1E6),  # Timestamp since epoch in microseonds
                             0,  # GPS ID
                             # Flags indicating which fields to ignore 
-                            (mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_ALT |
-                            mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_HDOP |
+                            (mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_HDOP |
                             mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_VDOP  |
                             mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_VEL_HORIZ |
                             mavutil.mavlink.GPS_INPUT_IGNORE_FLAG_VEL_VERT | 
@@ -279,7 +305,7 @@ class MavlinkHelper():
                             3,  # 3-D Fix
                             int(hnavData.latitude_degrees * 1e7),  # Latitude, in degrees * 1E7
                             int(hnavData.longitude_degrees * 1e7),  # Longitude, in degrees * 1E7
-                            0,  # Altitude above sea level (N/A)
+                            hnavData.depth_meters * -1,  # Altitude above sea level (N/A)
                             65535,  # GPS HDOP horizontal dilution of position in m. Unknown so set to uint16 max
                             65535,  # GPS VDOP vertical dilution of position in m. Unknown so set to uint16 max
                             65535,  # GPS velocity in m/s in NORTH direction in earth-fixed NED frame. Ignored
@@ -287,37 +313,25 @@ class MavlinkHelper():
                             65535,  # GPS velocity in m/s in DOWN direction in earth-fixed NED frame. Ignored
                             65535,  # GPS speed accuracy in m/s. Need to convert from mm/s. Ignored
                             65535,  # GPS horizontal accuracy in m. Ignored
-                            0,  # GPS vertical accuracy in m
+                            0.1,  # GPS vertical accuracy in m
                             12,   # Number of satellites visible
                             int(yaw) # Yaw, in degrees * 1E2
                         )
                 except:
                     self.logger.error("Cannot send GPS Input message to ROV")
 
-        def sendPositionDeltaUpdate(self, currentHnavData, previousHnavData):
+        def sendVisionSpeedUpdate(self, currentHnavData, previousHnavData):
 
             if self.correctProcessor and self.isConnected:
-                timeDeltaMicroseconds = int((currentHnavData.utc - previousHnavData.utc) * 1E6) # Time difference in microseonds
-                timeDeltaSeconds = currentHnavData.utc - previousHnavData.utc # Time difference in seconds
-                pitchDelta = math.radians(currentHnavData.pitch_degrees - previousHnavData.pitch_degrees)
-                rollDelta = math.radians(currentHnavData.roll_degrees - previousHnavData.roll_degrees)
-                headingDelta = math.radians(currentHnavData.heading_degrees - previousHnavData.heading_degrees)
-                rotationDelta = [pitchDelta, rollDelta, headingDelta]
-
-                forwardPosDelta = currentHnavData.forward_velocity_meters_per_second *  timeDeltaSeconds
-                starboardPosDelta = currentHnavData.starboard_velocity_meters_per_second * timeDeltaSeconds
-                downwardPosDelta = currentHnavData.downward_velocity_meters_per_second * timeDeltaSeconds
-
-                try:
-                    self.connection.mav.vision_position_delta_send(
-                        0,
-                        timeDeltaMicroseconds, # Time difference in microseonds
-                        [pitchDelta, rollDelta, headingDelta], # Change in X Y Z rotation,
-                        [forwardPosDelta, starboardPosDelta, downwardPosDelta], # Change in X Y Z position,
-                        100
+                try:    
+                    self.connection.mav.vision_speed_estimate_send(
+                        int((currentHnavData.utc) * 1E6),
+                        currentHnavData.forward_velocity_meters_per_second,
+                        currentHnavData.starboard_velocity_meters_per_second,
+                        currentHnavData.downward_velocity_meters_per_second
                     )
                 except Exception as e:
-                    self.logger.error("Cannot send position delta message to ROV")
+                    self.logger.error("Cannot send vision speed estimate ROV")
 
         def setGPS(self, port, baudRate):
             self.gpsSerialPort = port
