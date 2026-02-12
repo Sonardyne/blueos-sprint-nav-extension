@@ -24,22 +24,11 @@ ARG TARGETARCH
 
 # Install dependencies
 RUN apt clean && apt autoclean && apt update && apt install -y \
-        build-essential \
         git \
-        libxml2 \
-        libxml2-dev \
-        libxml2-utils \
-        libxslt-dev \
-        meson \
         python3 \
         nginx \
-        ninja-build \
-        python3-dev \
         python3-pip \
-        python3-setuptools \
-        python3-wheel \
         systemctl \
-        vim \
         wget && \
         rm -rf /var/lib/apt/lists/*
 
@@ -55,14 +44,15 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; \
 
 # Must update GO due to gRPC-Web dependency. ARMv7 architecture must be set to arm64 
 RUN if [ "${TARGETARCH}" = "arm" ]; \
-        then wget https://go.dev/dl/go1.23.0.linux-arm64.tar.gz && rm -rf /usr/local/go && tar -C /usr/local -xzf go1.23.0.linux-arm64.tar.gz; \
-        else wget https://go.dev/dl/go1.23.0.linux-${TARGETARCH}.tar.gz && rm -rf /usr/local/go && tar -C /usr/local -xzf go1.23.0.linux-${TARGETARCH}.tar.gz; \
+        then wget https://go.dev/dl/go1.23.0.linux-arm64.tar.gz && rm -rf /usr/local/go && tar -C /usr/local -xzf go1.23.0.linux-arm64.tar.gz && rm ./go1.23.0.linux-arm64.tar.gz; \
+        else wget https://go.dev/dl/go1.23.0.linux-${TARGETARCH}.tar.gz && rm -rf /usr/local/go && tar -C /usr/local -xzf go1.23.0.linux-${TARGETARCH}.tar.gz && rm ./go1.23.0.linux-${TARGETARCH}.tar.gz; \
         fi
 
 RUN git clone https://github.com/improbable-eng/grpc-web.git $GOPATH/src/github.com/improbable-eng/grpc-web && \
         cd $GOPATH/src/github.com/improbable-eng/grpc-web && \
         go get ./go/grpcwebproxy && \
-        go install ./go/grpcwebproxy
+        go install ./go/grpcwebproxy && \
+        go clean -cache -modcache
 
 # Create a target for building the BlueOS Extension WebUI
 FROM build-dependencies AS build-blueos-docker-image
@@ -79,7 +69,7 @@ RUN cd ./webui_backend && python3 -m grpc_tools.protoc -I=../protobuf --python_o
 
 EXPOSE 9091/tcp 
 
-LABEL version="1.0.9"
+LABEL version="1.0.10"
 LABEL permissions='\
           {\
             "NetworkMode": "host", \
