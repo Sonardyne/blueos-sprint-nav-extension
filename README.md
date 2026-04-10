@@ -1,1 +1,1 @@
-[BlueOS Extension Information](https://sonardyne.github.io/son-idl/integration/#blueos) 
+[BlueOS Extension Information](https://sonardyne.github.io/son-idl/1.0.3/integration/#blueos) 
