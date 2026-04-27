@@ -11,7 +11,7 @@ case "$ARCH" in
     arm*)
         cp ./deployment/proxy_service/arm/grpc_web_proxy.service /etc/systemd/system/;;
     aarch64)
-        cp ./deployment/proxy_service/arm/grpc_web_proxy.service /etc/systemd/system/;;
+        cp ./deployment/proxy_service/aarch64/grpc_web_proxy.service /etc/systemd/system/;;
     *)
         printf 'Unsupported Architecture: "%s"\n' "$ARCH" >&2; exit 2;;
 esac
